@@ -6,7 +6,7 @@ import clerkWebhooks from "./src/controllers/clerkWebhooks.js";
 const app = express();
 
 app.use(express.json())
-app.use(clerkMiddleware())
+// app.use(clerkMiddleware())
 app.use(cors());
 
 // app.post('/user',async(req,res) => {
@@ -22,7 +22,7 @@ app.use(cors());
 //     })
 //     res.send(NewUser)
 // })
-app.use("/api/clerk" , clerkWebhooks)
+// app.use("/api/clerk" , clerkWebhooks)
 app.get('/',(req,res) => res.send("hello doston"));
 
 const PORT = process.env.PORT||5000
