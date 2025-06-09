@@ -7,21 +7,19 @@ datasource db {
   url = env("DATABASE_URL")
 }
 
+model User {
+  id                    Int      @id @default(autoincrement())
+  clerkId               String   @unique
+  username              String
+  email                 String   @unique
+  image                 String
+  password              String?
+  role                  Role     @default(user)
+  recentSearchedCities  String[] @default([])
+  created_at            DateTime @default(now())
+}
+
 enum Role {
   user
   hotelOwner
- 
 }
-
-model User {
-  id Int @id @default(autoincrement())
-  username String
-  email String @unique
-  image String
-  password  String?
-  role Role @default(user)
-  recentSearchedCities String[]
-  created_at DateTime @default(now())
-}
-
-
