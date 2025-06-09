@@ -16,12 +16,12 @@ const clerkWebhooks = async(req,res) => {
        const {data ,type} = req.body
        
        const userData = {
-        _id:data.id,
+        id:data.id,
         email:data.email_addresses[0].email_address,
         username: data.first_name + " " + data.last_name,
         image:data.image_url,
        }
-
+    console.log(userData)
        switch(type){
         case "user.created":{
             await prisma.user.create({data:userData})
@@ -29,7 +29,7 @@ const clerkWebhooks = async(req,res) => {
         }
         case "user.updated":{
       await prisma.user.update({
-           where:{_id:data.id},
+           where:{id:data.id},
            data:userData
             })
          break;
@@ -37,13 +37,14 @@ const clerkWebhooks = async(req,res) => {
         }
         case "user.deleted":{
             await prisma.user.delete({
-                where:{_id:data.id}
+                where:{id:data.id}
             })
             break;
         }
         default:
             break;
        }
+      
        res.json({success:true ,message:"webhook recieved"})
 
     }
