@@ -16,7 +16,7 @@ export const stripeWebhooks = async (req, res) => {
   }
 
   // ✅ Handle only checkout.session.completed
-  if (event.type === 'checkout.session.completed') {
+  if (event.type ==='payment_intent.succeeded') {
     const session = event.data.object;
 
     const bookingId = session.metadata?.bookingId;
@@ -42,5 +42,5 @@ export const stripeWebhooks = async (req, res) => {
     console.log('Unhandled event type:', event.type);
   }
 
-  res.json("webok work well");
+  res.json({ received: true });
 };
