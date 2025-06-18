@@ -1,5 +1,5 @@
 import Stripe from "stripe"
-import prisma from "../configs/db.config";
+import prisma from "../configs/db.config.js";
 
 
 
