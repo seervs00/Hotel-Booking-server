@@ -17,9 +17,60 @@ model User {
   role                  Role     @default(user)
   recentSearchedCities  String[] @default([])
   created_at            DateTime @default(now())
+  hotels                Hotel?
+  bookings              Booking[]
 }
 
 enum Role {
   user
   hotelOwner
+}
+
+model Hotel {
+  id                    Int      @id @default(autoincrement())
+  name                  String
+  contact               String   @unique
+  address               String
+  city                  String
+  ownerId               Int      @unique
+  owner                 User     @relation(fields: [ownerId], references: [id])
+  created_at            DateTime @default(now())
+  rooms                 Room[]
+  bookings              Booking[]
+}
+
+model Room {
+  id                    Int       @id @default(autoincrement())
+  roomType              String
+  pricePerNight         Float
+  amenities             String[]
+  images                String[] 
+  isAvailable           Boolean   @default(true)
+  created_at            DateTime  @default(now())
+  hotelId               Int      
+  hotel                 Hotel     @relation(fields: [hotelId],references: [id])
+  bookings              Booking[]
+}
+enum Status {
+  pending
+  conformed
+  cancelled
+}
+
+model Booking {
+  id                   Int       @id @default(autoincrement())
+  userId               Int
+  user                 User      @relation(fields: [userId],references: [id])
+  hotelId              Int
+  hotel                Hotel     @relation(fields: [hotelId],references: [id])
+  roomId               Int
+  room                 Room      @relation(fields: [roomId],references: [id])
+  checkInDate          DateTime
+  checkOutDate         DateTime
+  totalPrice           Int
+  guests               Int
+  status               Status    @default(pending)
+  created_at           DateTime  @default(now())
+  paymentMethod        String    @default("pay At Hotel")
+  isPaid               Boolean   @default(false)
 }
