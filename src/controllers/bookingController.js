@@ -1,3 +1,4 @@
+import Stripe from "stripe";
 import prisma from "../configs/db.config.js"
 import transporter from "../configs/nodemailer.js";
 
@@ -159,4 +160,66 @@ export const getHotelBooking = async(req,res) => {
   catch(err){
     res.json({success:false,message:err.message});
   }
+}
+
+
+//stripe payment 
+export const stripePayment = async(req,res) => {
+  try{
+     const {bookingId} = req.body
+    
+     const booking = await prisma.booking.findFirst({
+      where:{id:bookingId},  
+     });
+     if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+     const roomData = await prisma.room.findFirst({
+      where:{id:booking.roomId},
+      include:{
+        hotel:true
+      },
+     })
+
+     if (!roomData) {
+      return res.status(404).json({ success: false, message: "Room not found" });
+    }
+     const totalPrice = booking.totalPrice
+     const {origin} = req.headers;
+
+     const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+     const line_items =[
+      {
+        price_data:{
+          currency:'usd',
+          product_data:{
+            name:roomData.hotel.name
+          },
+          unit_amount:totalPrice*100
+        },
+        quantity:1
+
+      }
+     ]
+
+    
+     // create checkout session
+     const session = await stripeInstance.checkout.sessions.create({
+      line_items,
+      mode:'payment',
+      success_url:`${origin}/loader/my-bookings`,
+      cancel_url:`${origin}/my-bookings`,
+      metadata:{
+        bookingId
+      }
+     })
+
+     res.json({success:true, url:session.url})
+
+  }
+  catch(err){
+    res.json({success:false,message:"Payment faild please try latter"})
+  }
+
 }

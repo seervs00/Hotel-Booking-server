@@ -8,12 +8,15 @@ import hotelRouter from "./src/routes/hotelRouter.js";
 import connectCloudinary from "./src/configs/cloudinary.js";
 import roomRouter from "./src/routes/roomRouter.js";
 import bookingRouter from "./src/routes/bookingRouter.js";
+import { stripeWebhooks } from "./src/controllers/StripeWebhooks.js";
 const app = express();
 connectCloudinary()
+
+//api to listen to stripe webhooks
+app.post('/api/stripe',express.raw({type:"application/json"}),stripeWebhooks)
 app.use(express.json())
 app.use(clerkMiddleware())
 app.use(cors());
-
 
 app.get('/',(req,res) => res.send("hello doston"));
 
@@ -24,3 +27,6 @@ app.use("/api/rooms",roomRouter)
 app.use("/api/bookings",bookingRouter)
 
 export default app;
+const PORT = process.env.PORT||3000
+
+app.listen(PORT , () => console.log(`server listen ${PORT} Sccessfully`))
