@@ -42,5 +42,5 @@ export const stripeWebhooks = async (req, res) => {
     console.log('Unhandled event type:', event.type);
   }
 
-  res.json({ received: true });
+  res.json("webok work well");
 };
