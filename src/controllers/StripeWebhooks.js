@@ -1,46 +1,40 @@
-import Stripe from "stripe";
-import prisma from "../configs/db.config.js";
+import Stripe from "stripe"
+import prisma from "../configs/db.config";
 
-const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-export const stripeWebhooks = async (req, res) => {
-  
-  const sig = req.headers['stripe-signature'];
 
-  let event;
+export const stripeWebhooks = async(request,response) => {
+    //stripe gateway initilize
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const sig = request.headers['stripe-signature'];
+    let event;
+    try{
+        event = stripeInstance.webhooks.constructEvent(request.body,sig,process.env.STRIPE_WEBHOOK_SECRET);
 
-  try {
-    event = stripeInstance.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    return res.status(400).json({ success: false, message: `Webhook Error: ${err.message}` });
-  }
-
-  // ✅ Handle only checkout.session.completed
-  if (event.type ==='payment_intent.succeeded') {
-    const session = event.data.object;
-
-    const bookingId = session.metadata?.bookingId;
-    
-    if (!bookingId) {
-      return res.status(400).json({ success: false, message: "Missing bookingId in metadata" });
+    }
+    catch(err){
+        response.status(400).send(`Webhook Error: ${err.message}`)
     }
 
-    try {
-      await prisma.booking.update({
-        where: { id:Number(bookingId)},
-        data: {
-          isPaid: true,
-          paymentMethod: 'Stripe',
-        },
+    if(event.type ==='payment_intent.succeeded'){
+        const paymentIntent = event.data.object;
+        const paymentIntentId = paymentIntent.id;
+    //metadata
+      const session = await stripeInstance.checkout.sessions.list({
+        payment_intent:paymentIntentId
       });
-     
-    } catch (err) {
-    
-      return res.status(500).json({ success: false, message: "Database update failed" });
-    }
-  } else {
-    console.log('Unhandled event type:', event.type);
-  }
+      const {bookingId} = session.data[0].metadata
 
-  res.json({ received: true });
-};
+      await prisma.booking.update({
+        where:{id:Number(bookingId)},
+        data:{
+            isPaid:true,
+            paymentMethod:'Stripe'
+        }
+      });
+    }
+    else{
+        console.log('unheandled event type:',event.type)
+    }
+    response.json({received:true})
+}
